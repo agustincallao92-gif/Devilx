@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>XYTO Hosting - Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        dark: '#0F172A',
+                        darker: '#020617',
+                        primary: '#2563EB', // BLUE
+                        danger: '#DC2626', // RED
+                        card: '#1E293B',
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'system-ui', 'sans-serif'],
+                    },
+                }
+            }
+        }
+    </script>
+    <style type="text/tailwindcss">
+        @layer utilities {
+            .content-auto {
+                content-visibility: auto;
+            }
+            .card-shadow {
+                box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+            }
+            .scrollbar-hide {
+                -ms-overflow-style: none;
+                scrollbar-width: none;
+            }
+            .scrollbar-hide::-webkit-scrollbar {
+                display: none;
+            }
+            .modal-backdrop {
+                backdrop-filter: blur(4px);
+            }
+        }
+    </style>
+</head>
+<body class="bg-darker text-gray-100 min-h-screen font-sans">
+    <script>
+        if(localStorage.getItem('isLoggedIn') !== 'true') {
+            window.location.href = 'index.html';
+        }
+        
+        const currentUser = JSON.parse(localStorage.getItem('currentUser')) || {};
+        let myBots = JSON.parse(localStorage.getItem('myBots')) || [];
+        let currentManageBot = null;
+
+        function logout() {
+            localStorage.removeItem('isLoggedIn');
+            localStorage.removeItem('currentUser');
+            window.location.href = 'index.html';
+        }
+
+        function openCreateBot() {
+            document.getElementById('createBotModal').classList.remove('hidden');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeCreateBot() {
+            document.getElementById('createBotModal').classList.add('hidden');
+            document.body.style.overflow = 'auto';
+            document.getElementById('createBotForm').reset();
+        }
+
+        // Function to save new bot
+        function deployBot(e) {
+            e.preventDefault();
+            
+            const botName = document.querySelector('input[placeholder="e.g. DevilX Bot"]').value;
+            const botToken = document.querySelector('input[placeholder="From @BotFather"]').value;
+            const botDesc = document.querySelector('textarea').value;
+            const botFile = document.querySelector('input[type="file"]').files[0];
+
+            if(!botName || !botToken) {
+                alert("❌ Please fill up Bot Name and Bot Token!");
+                return;
+            }
+
+            if(myBots.length >= 10) {
+                alert("❌ Maximum 10 bots only!");
+                return;
+            }
+
+            // Create new bot object
+            const newBot = {
+                id: Date.now(),
+                name: botName,
+                token: botToken,
+                description: botDesc,
+                fileName: botFile ? botFile.name : "No file uploaded",
+                fileContent: botFile ? URL.createObjectURL(botFile) : null,
+                status: "Stopped",
+                createdAt: new Date().toLocaleString(),
+                logs: [],
+                files: botFile ? [{name: botFile.name, size: Math.round(botFile.size/1024) + " KB"}] : []
+            };
+
+            // Save to array and local storage
+            myBots.push(newBot);
+            localStorage.setItem('myBots', JSON.stringify(myBots));
+
+            closeCreateBot();
+            updateDashboard();
+            alert("✅ Bot Deployed Successfully!");
+        }
+
+        // START BOT FUNCTION
+        function startBot(botId) {
+            const botIndex = myBots.findIndex(b => b.id === botId);
+            if(botIndex !== -1) {
+                myBots[botIndex].status = "Running";
+                myBots[botIndex].logs.push(`[${new Date().toLocaleString()}] ✅ Bot started successfully`);
+                localStorage.setItem('myBots', JSON.stringify(myBots));
+                updateDashboard();
+                if(currentManageBot && currentManageBot.id === botId) openManageBot(botId);
+                alert("✅ Bot Started Successfully!");
+            }
+        }
+
+        // STOP BOT FUNCTION
+        function stopBot(botId) {
+            const botIndex = myBots.findIndex(b => b.id === botId);
+            if(botIndex !== -1) {
+                myBots[botIndex].status = "Stopped";
+                myBots[botIndex].logs.push(`[${new Date().toLocaleString()}] 🛑 Bot stopped`);
+                localStorage.setItem('myBots', JSON.stringify(myBots));
+                updateDashboard();
+                if(currentManageBot && currentManageBot.id === botId) openManageBot(botId);
+                alert("🛑 Bot Stopped Successfully!");
+            }
+        }
+
+        // ✅ MANAGE BOT PAGE - RED & BLUE COLORS ONLY
+        function openManageBot(botId) {
+            currentManageBot = myBots.find(b => b.id === botId);
+            const modal = document.getElementById('manageBotModal');
+            
+            modal.innerHTML = `
+                <div class="bg-dark rounded-xl w-full max-w-4xl max-h-[90vh] overflow-y-auto card-shadow border border-gray-700/30 p-6">
+                    <div class="flex justify-between items-center mb-6">
+                        <div class="flex items-center gap-3">
+                            <h2 class="text-2xl font-bold">${currentManageBot.name}</h2>
+                            <span class="px-3 py-1 text-sm rounded-full ${currentManageBot.status === 'Running' ? 'bg-primary/20 text-primary border border-primary/30' : 'bg-danger/20 text-danger border border-danger/30'}">
+                                ${currentManageBot.status}
+                            </span>
+                        </div>
+                        <button onclick="closeManageBot()" class="text-gray-400 hover:text-white text-2xl">
+                            <i class="fa fa-times"></i>
+                        </button>
+                    </div>
+
+                    <!-- ACTION BUTTONS - RED & BLUE ONLY -->
+                    <div class="flex flex-wrap gap-2 mb-6">
+                        ${currentManageBot.status === 'Stopped' ? 
+                            `<button onclick="startBot(${currentManageBot.id})" class="bg-primary/20 hover:bg-primary/30 text-primary px-4 py-2 rounded-lg flex items-center gap-2 transition-all font-medium border border-primary/30">
+                                <i class="fa fa-play"></i> Start Bot
+                            </button>` : 
+                            `<button onclick="stopBot(${currentManageBot.id})" class="bg-danger/20 hover:bg-danger/30 text-danger px-4 py-2 rounded-lg flex items-center gap-2 transition-all font-medium border border-danger/30">
+                                <i class="fa fa-stop"></i> Stop Bot
+                            </button>`
+                        }
+                        <button class="bg-primary/20 hover:bg-primary/30 text-primary px-4 py-2 rounded-lg flex items-center gap-2 transition-all border border-primary/30">
+                            <i class="fa fa-folder-open"></i> View Files
+                        </button>
+                        <button class="bg-primary/20 hover:bg-primary/30 text-primary px-4 py-2 rounded-lg flex items-center gap-2 transition-all border border-primary/30">
+                            <i class="fa fa-edit"></i> Edit
+                        </button>
+                        <button class="bg-primary/20 hover:bg-primary/30 text-primary px-4 py-2 rounded-lg flex items-center gap-2 transition-all border border-primary/30">
+                            <i class="fa fa-cog"></i> Settings
+                        </button>
+                        <button onclick="deleteBotFromManage(${currentManageBot.id})" class="bg-danger/20 hover:bg-danger/30 text-danger px-4 py-2 rounded-lg flex items-center gap-2 transition-all border border-danger/30">
+                            <i class="fa fa-trash"></i> Delete
+                        </button>
+                    </div>
+
+                    <!-- BOT INFO -->
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                        <div class="bg-card p-4 rounded-lg border border-gray-700/30">
+                            <p class="text-gray-400 text-sm mb-1">Bot Folder</p>
+                            <p class="font-mono text-sm">bot_${currentManageBot.id}/</p>
+                        </div>
+                        <div class="bg-card p-4 rounded-lg border border-gray-700/30">
+                            <p class="text-gray-400 text-sm mb-1">Main File</p>
+                            <p class="font-mono text-sm">${currentManageBot.fileName}</p>
+                        </div>
+                        <div class="bg-card p-4 rounded-lg border border-gray-700/30">
+                            <p class="text-gray-400 text-sm mb-1">Created</p>
+                            <p class="text-sm">${currentManageBot.createdAt}</p>
+                        </div>
+                    </div>
+
+                    <!-- BOT TOKEN -->
+                    <div class="bg-card p-4 rounded-lg border border-gray-700/30 mb-6">
+                        <p class="text-gray-400 text-sm mb-2">Bot Token</p>
+                        <div class="flex gap-2 items-center">
+                            <input type="text" value="${currentManageBot.token}" readonly class="flex-1 bg-dark border border-gray-700 rounded px-3 py-2 text-sm font-mono">
+                            <button onclick="navigator.clipboard.writeText('${currentManageBot.token}')" class="bg-primary/20 hover:bg-primary/30 text-primary p-2 rounded border border-primary/30">
+                                <i class="fa fa-copy"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- CONSOLE LOGS -->
+                    <div class="bg-card p-4 rounded-lg border border-gray-700/30 mb-6">
+                        <div class="flex justify-between items-center mb-3">
+                            <p class="text-gray-300 font-medium"><i class="fa fa-terminal mr-2"></i> Console Logs</p>
+                            <div class="flex gap-3">
+                                <button onclick="clearLogs()" class="text-xs ${currentManageBot.status === 'Running' ? 'text-primary hover:text-primary/80' : 'text-danger hover:text-danger/80'}">Clear</button>
+                                <button onclick="openManageBot(${currentManageBot.id})" class="text-xs ${currentManageBot.status === 'Running' ? 'text-primary hover:text-primary/80' : 'text-danger hover:text-danger/80'}">Refresh</button>
+                            </div>
+                        </div>
+                        <div class="bg-dark rounded p-3 h-48 overflow-y-auto font-mono text-sm ${currentManageBot.status === 'Running' ? 'text-primary/90' : 'text-danger/90'}">
+                            ${currentManageBot.logs.length > 0 ? currentManageBot.logs.join('<br>') : '<span class="text-gray-500">No logs available.</span>'}
+                        </div>
+                    </div>
+
+                    <!-- FILE MANAGEMENT -->
+                    <div class="bg-card p-4 rounded-lg border border-gray-700/30">
+                        <div class="flex justify-between items-center mb-3">
+                            <p class="text-gray-300 font-medium"><i class="fa fa-folder mr-2"></i> File Management</p>
+                            <button class="bg-primary/20 hover:bg-primary/30 text-primary px-3 py-1 rounded text-sm flex items-center gap-1 border border-primary/30">
+                                <i class="fa fa-upload"></i> Upload
+                            </button>
+                        </div>
+                        
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-sm">
+                                <thead>
+                                    <tr class="border-b border-gray-700">
+                                        <th class="text-left py-2 px-3 text-gray-400">Name</th>
+                                        <th class="text-left py-2 px-3 text-gray-400">Size</th>
+                                        <th class="text-right py-2 px-3 text-gray-400">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    ${currentManageBot.files.length > 0 ? 
+                                        currentManageBot.files.map(file => `
+                                            <tr class="border-b border-gray-700/50 hover:bg-dark/50">
+                                                <td class="py-3 px-3 flex items-center gap-2">
+                                                    <i class="fa fa-file-code-o ${currentManageBot.status === 'Running' ? 'text-primary' : 'text-danger'}"></i> ${file.name}
+                                                </td>
+                                                <td class="py-3 px-3 text-gray-400">${file.size}</td>
+                                                <td class="py-3 px-3 text-right">
+                                                    <button class="text-primary hover:text-primary/80 mx-1"><i class="fa fa-pencil"></i></button>
+                                                    <button class="text-primary hover:text-primary/80 mx-1"><i class="fa fa-download"></i></button>
+                                                    <button class="text-danger hover:text-danger/80 mx-1"><i class="fa fa-trash"></i></button>
+                                                </td>
+                                            </tr>
+                                        `).join('') : 
+                                        `<tr><td colspan="3" class="py-4 text-center text-gray-500">No files uploaded</td></tr>`
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            `;
+            modal.classList.remove('hidden');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeManageBot() {
+            document.getElementById('manageBotModal').classList.add('hidden');
+            document.body.style.overflow = 'auto';
+            currentManageBot = null;
+        }
+
+        function clearLogs() {
+            if(currentManageBot) {
+                const botIndex = myBots.findIndex(b => b.id === currentManageBot.id);
+                myBots[botIndex].logs = [];
+                localStorage.setItem('myBots', JSON.stringify(myBots));
+                openManageBot(currentManageBot.id);
+            }
+        }
+
+        function deleteBotFromManage(botId) {
+            if(confirm("Are you sure you want to delete this bot?")) {
+                myBots = myBots.filter(b => b.id !== botId);
+                localStorage.setItem('myBots', JSON.stringify(myBots));
+                closeManageBot();
+                updateDashboard();
+            }
+        }
+
+        // Update all stats and list
+        function updateDashboard() {
+            document.getElementById('botsCount').textContent = `${myBots.length}/10`;
+            document.getElementById('runningCount').textContent = myBots.filter(b => b.status === "Running").length;
+            document.getElementById('stoppedCount').textContent = myBots.filter(b => b.status === "Stopped").length;
+
+            const botsContainer = document.getElementById('botsContainer');
+            
+            if(myBots.length === 0) {
+                botsContainer.innerHTML = `
+                    <div class="bg-card rounded-xl p-10 card-shadow border border-gray-700/30 text-center">
+                        <div class="text-gray-500 mb-4">
+                            <i class="fa fa-robot text-6xl opacity-30"></i>
+                        </div>
+                        <h3 class="text-xl font-medium text-gray-300 mb-2">No Bots Created Yet</h3>
+                        <p class="text-gray-400 mb-6">Click the "New Bot" button above to create your first bot hosting</p>
+                        <button onclick="openCreateBot()" class="bg-primary hover:bg-primary/90 px-6 py-3 rounded-lg font-medium transition-all inline-flex items-center gap-2 border border-primary/30">
+                            <i class="fa fa-plus"></i> Create New Bot
+                        </button>
+                        
+                        <div class="mt-8">
+                            <a href="https://t.me/XytoChannel" target="_blank" class="inline-flex items-center gap-2 bg-primary/20 hover:bg-primary/30 text-primary px-4 py-2
