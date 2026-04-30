@@ -121,11 +121,11 @@
             const botIndex = myBots.findIndex(b => b.id === botId);
             if(botIndex !== -1) {
                 myBots[botIndex].status = "Running";
-                myBots[botIndex].logs.push(`[${new Date().toLocaleString()}] ✅ Bot started successfully`);
+                myBots[botIndex].logs.push(`[${new Date().toLocaleString()}] Bot started successfully`);
                 localStorage.setItem('myBots', JSON.stringify(myBots));
                 updateDashboard();
-                if(currentManageBot && currentManageBot.id === botId) openManageBot(botId);
                 alert("✅ Bot Started Successfully!");
+                if(currentManageBot && currentManageBot.id === botId) openManageBot(botId);
             }
         }
 
@@ -134,15 +134,15 @@
             const botIndex = myBots.findIndex(b => b.id === botId);
             if(botIndex !== -1) {
                 myBots[botIndex].status = "Stopped";
-                myBots[botIndex].logs.push(`[${new Date().toLocaleString()}] 🛑 Bot stopped`);
+                myBots[botIndex].logs.push(`[${new Date().toLocaleString()}] Bot stopped`);
                 localStorage.setItem('myBots', JSON.stringify(myBots));
                 updateDashboard();
-                if(currentManageBot && currentManageBot.id === botId) openManageBot(botId);
                 alert("🛑 Bot Stopped Successfully!");
+                if(currentManageBot && currentManageBot.id === botId) openManageBot(botId);
             }
         }
 
-        // ✅ MANAGE BOT PAGE - COMPLETE WITH START/STOP BUTTON
+        // ✅ MANAGE BOT - NEW INTERFACE LIKE YOUR EXAMPLE
         function openManageBot(botId) {
             currentManageBot = myBots.find(b => b.id === botId);
             const modal = document.getElementById('manageBotModal');
@@ -161,26 +161,26 @@
                         </button>
                     </div>
 
-                    <!-- ACTION BUTTONS - NANDITO NA ANG START/STOP -->
+                    <!-- ACTION BUTTONS -->
                     <div class="flex flex-wrap gap-2 mb-6">
                         ${currentManageBot.status === 'Stopped' ? 
-                            `<button onclick="startBot(${currentManageBot.id})" class="bg-green-600/20 hover:bg-green-600/30 text-green-400 px-4 py-2 rounded-lg flex items-center gap-2 transition-all font-medium">
-                                <i class="fa fa-play"></i> Start Bot
+                            `<button onclick="startBot(${currentManageBot.id})" class="bg-success/20 hover:bg-success/30 text-success px-4 py-2 rounded-lg flex items-center gap-2 transition-all">
+                                <i class="fa fa-play"></i> Start
                             </button>` : 
-                            `<button onclick="stopBot(${currentManageBot.id})" class="bg-red-600/20 hover:bg-red-600/30 text-red-400 px-4 py-2 rounded-lg flex items-center gap-2 transition-all font-medium">
-                                <i class="fa fa-stop"></i> Stop Bot
+                            `<button onclick="stopBot(${currentManageBot.id})" class="bg-danger/20 hover:bg-danger/30 text-danger px-4 py-2 rounded-lg flex items-center gap-2 transition-all">
+                                <i class="fa fa-stop"></i> Stop
                             </button>`
                         }
-                        <button class="bg-yellow-600/20 hover:bg-yellow-600/30 text-yellow-400 px-4 py-2 rounded-lg flex items-center gap-2 transition-all">
+                        <button class="bg-warning/20 hover:bg-warning/30 text-warning px-4 py-2 rounded-lg flex items-center gap-2 transition-all">
                             <i class="fa fa-folder-open"></i> View Files
                         </button>
-                        <button class="bg-blue-600/20 hover:bg-blue-600/30 text-blue-400 px-4 py-2 rounded-lg flex items-center gap-2 transition-all">
+                        <button class="bg-blue-500/20 hover:bg-blue-500/30 text-blue-400 px-4 py-2 rounded-lg flex items-center gap-2 transition-all">
                             <i class="fa fa-edit"></i> Edit
                         </button>
-                        <button class="bg-purple-600/20 hover:bg-purple-600/30 text-purple-400 px-4 py-2 rounded-lg flex items-center gap-2 transition-all">
+                        <button class="bg-purple-500/20 hover:bg-purple-500/30 text-purple-400 px-4 py-2 rounded-lg flex items-center gap-2 transition-all">
                             <i class="fa fa-cog"></i> Settings
                         </button>
-                        <button onclick="deleteBotFromManage(${currentManageBot.id})" class="bg-red-600/20 hover:bg-red-600/30 text-red-400 px-4 py-2 rounded-lg flex items-center gap-2 transition-all">
+                        <button onclick="deleteBotFromManage(${currentManageBot.id})" class="bg-danger/20 hover:bg-danger/30 text-danger px-4 py-2 rounded-lg flex items-center gap-2 transition-all">
                             <i class="fa fa-trash"></i> Delete
                         </button>
                     </div>
@@ -216,12 +216,12 @@
                     <div class="bg-card p-4 rounded-lg border border-gray-700/30 mb-6">
                         <div class="flex justify-between items-center mb-3">
                             <p class="text-gray-300 font-medium"><i class="fa fa-terminal mr-2"></i> Console Logs</p>
-                            <div class="flex gap-3">
+                            <div class="flex gap-2">
                                 <button onclick="clearLogs()" class="text-xs text-gray-400 hover:text-white">Clear</button>
                                 <button onclick="openManageBot(${currentManageBot.id})" class="text-xs text-gray-400 hover:text-white">Refresh</button>
                             </div>
                         </div>
-                        <div class="bg-dark rounded p-3 h-48 overflow-y-auto font-mono text-sm text-green-400/90">
+                        <div class="bg-dark rounded p-3 h-48 overflow-y-auto font-mono text-sm">
                             ${currentManageBot.logs.length > 0 ? currentManageBot.logs.join('<br>') : '<span class="text-gray-500">No logs available.</span>'}
                         </div>
                     </div>
@@ -318,9 +318,4 @@
                         <div class="mt-8">
                             <a href="https://t.me/XytoChannel" target="_blank" class="inline-flex items-center gap-2 bg-blue-500/10 hover:bg-blue-500/20 text-blue-400 px-4 py-2 rounded-lg transition-all text-sm font-medium">
                                 <i class="fa fa-paper-plane"></i> Join XYTO Official Channel
-                            </a>
-                        </div>
-                    </div>
-                `;
-            } else {
-                let botsHTML = `<div class="grid grid-cols-1 md:
+                           
