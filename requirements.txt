@@ -1,3 +1,6 @@
 python-telegram-bot
 psutil
 google-generativeai
+pyTelegramBotAPI
+requests
+beautifulsoup4
