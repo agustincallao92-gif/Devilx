@@ -4,3 +4,4 @@ google-generativeai
 pyTelegramBotAPI
 requests
 beautifulsoup4
+phonenumbers
