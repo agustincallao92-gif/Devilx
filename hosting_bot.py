@@ -272,6 +272,7 @@ TELEGRAM_MODULES = {
 
     # Browser automation
     'selenium': 'selenium',
+    'google-generativeai': 'google-generativeai', 
     'undetected_chromedriver': 'undetected-chromedriver',
     'undetected-chromedriver': 'undetected-chromedriver',
     'playwright': 'playwright',
