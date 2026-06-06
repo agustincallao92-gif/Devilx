@@ -34,7 +34,7 @@ logging.getLogger("urllib3").setLevel(logging.ERROR)
 logging.getLogger("requests").setLevel(logging.ERROR)
 
 BOT_TOKEN = "7908033454:AAFs0Hi8QUGGuubyWPTG3NBXgYSHj81X7nM" #lagay mo bot token mo 
-ADMIN_IDS = [8234048707] #id naman Dito 
+ADMIN_IDS = [6854608129] #id naman Dito 
 
 DATA_FILE = "bot_data.json"
 _data_lock = threading.Lock()
