@@ -3,3 +3,6 @@ Flask
 requests
 psutil
 google-generativeai
+python-telegram-bot
+cloudscraper
+pycryptodome
