@@ -1,0 +1,9 @@
+services:
+  - type: web
+    name: xytouniversalsearch
+    runtime: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn server:app --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: APIFY_TOKEN
+        sync: false   # you'll paste this in Render dashboard — never commit your token

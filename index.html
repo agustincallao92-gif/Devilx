@@ -1,0 +1,572 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>XytoUniversalSearch</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Space+Mono:wght@400;700&display=swap');
+
+  :root {
+    --bg:       #080b14;
+    --surface:  #0d1220;
+    --card:     #111827;
+    --border:   #1e2d45;
+    --cyan:     #00d4ff;
+    --cyan-dim: #00d4ff22;
+    --green:    #00ff88;
+    --red:      #ff4466;
+    --text:     #e2e8f0;
+    --muted:    #64748b;
+    --radius:   12px;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Space Grotesk', sans-serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* ── Grid background ── */
+  body::before {
+    content: '';
+    position: fixed; inset: 0;
+    background-image:
+      linear-gradient(rgba(0,212,255,.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0,212,255,.03) 1px, transparent 1px);
+    background-size: 40px 40px;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* ── Glow orb ── */
+  .orb {
+    position: fixed;
+    width: 600px; height: 600px;
+    border-radius: 50%;
+    background: radial-gradient(circle, #00d4ff18 0%, transparent 70%);
+    top: -200px; left: 50%;
+    transform: translateX(-50%);
+    pointer-events: none;
+    z-index: 0;
+    animation: pulse 6s ease-in-out infinite;
+  }
+  @keyframes pulse {
+    0%, 100% { opacity: .6; transform: translateX(-50%) scale(1); }
+    50%       { opacity: 1;  transform: translateX(-50%) scale(1.1); }
+  }
+
+  /* ── Layout ── */
+  .wrapper {
+    position: relative; z-index: 1;
+    max-width: 860px;
+    margin: 0 auto;
+    padding: 40px 20px 80px;
+  }
+
+  /* ── Header ── */
+  header {
+    text-align: center;
+    padding: 60px 0 50px;
+  }
+  .logo-row {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 14px;
+    margin-bottom: 18px;
+  }
+  .logo-icon {
+    width: 48px; height: 48px;
+    background: var(--cyan-dim);
+    border: 1px solid var(--cyan);
+    border-radius: 12px;
+    display: grid; place-items: center;
+    font-size: 24px;
+    box-shadow: 0 0 20px #00d4ff44;
+    animation: iconGlow 3s ease-in-out infinite;
+  }
+  @keyframes iconGlow {
+    0%, 100% { box-shadow: 0 0 20px #00d4ff44; }
+    50%       { box-shadow: 0 0 40px #00d4ff88; }
+  }
+  .logo-text {
+    font-family: 'Space Mono', monospace;
+    font-size: 28px;
+    font-weight: 700;
+    letter-spacing: -0.5px;
+  }
+  .logo-text span { color: var(--cyan); }
+
+  header p {
+    color: var(--muted);
+    font-size: 15px;
+    max-width: 400px;
+    margin: 0 auto;
+    line-height: 1.6;
+  }
+
+  /* ── Badge ── */
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: var(--cyan-dim);
+    border: 1px solid #00d4ff33;
+    border-radius: 100px;
+    padding: 5px 14px;
+    font-size: 12px;
+    color: var(--cyan);
+    font-family: 'Space Mono', monospace;
+    margin-bottom: 20px;
+    letter-spacing: .5px;
+  }
+  .badge-dot {
+    width: 6px; height: 6px;
+    background: var(--cyan);
+    border-radius: 50%;
+    animation: blink 1.5s ease-in-out infinite;
+  }
+  @keyframes blink {
+    0%, 100% { opacity: 1; } 50% { opacity: .2; }
+  }
+
+  /* ── Search box ── */
+  .search-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 28px;
+    margin-bottom: 32px;
+  }
+  .search-label {
+    font-size: 13px;
+    color: var(--muted);
+    margin-bottom: 10px;
+    font-family: 'Space Mono', monospace;
+    letter-spacing: .5px;
+    text-transform: uppercase;
+  }
+  .search-row {
+    display: flex;
+    gap: 12px;
+  }
+  .search-input {
+    flex: 1;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    color: var(--text);
+    font-family: 'Space Mono', monospace;
+    font-size: 16px;
+    padding: 14px 18px;
+    outline: none;
+    transition: border-color .2s, box-shadow .2s;
+  }
+  .search-input::placeholder { color: var(--muted); }
+  .search-input:focus {
+    border-color: var(--cyan);
+    box-shadow: 0 0 0 3px #00d4ff1a;
+  }
+  .search-btn {
+    background: var(--cyan);
+    color: #000;
+    border: none;
+    border-radius: var(--radius);
+    font-family: 'Space Grotesk', sans-serif;
+    font-weight: 700;
+    font-size: 15px;
+    padding: 14px 28px;
+    cursor: pointer;
+    transition: opacity .2s, transform .1s;
+    white-space: nowrap;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .search-btn:hover { opacity: .88; }
+  .search-btn:active { transform: scale(.97); }
+  .search-btn:disabled { opacity: .4; cursor: not-allowed; }
+
+  /* ── Platforms row ── */
+  .platforms {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 18px;
+  }
+  .plat-tag {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 4px 10px;
+    font-size: 11px;
+    color: var(--muted);
+    font-family: 'Space Mono', monospace;
+  }
+
+  /* ── Status bar ── */
+  #statusBar {
+    display: none;
+    align-items: center;
+    gap: 10px;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 14px 18px;
+    margin-bottom: 24px;
+    font-size: 14px;
+    color: var(--muted);
+  }
+  #statusBar.show { display: flex; }
+  .spinner {
+    width: 16px; height: 16px;
+    border: 2px solid var(--border);
+    border-top-color: var(--cyan);
+    border-radius: 50%;
+    animation: spin .7s linear infinite;
+    flex-shrink: 0;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* ── Error ── */
+  .error-box {
+    display: none;
+    background: #ff44661a;
+    border: 1px solid #ff446644;
+    border-radius: var(--radius);
+    padding: 16px 20px;
+    color: var(--red);
+    font-size: 14px;
+    margin-bottom: 24px;
+    line-height: 1.5;
+  }
+  .error-box.show { display: block; }
+
+  /* ── Results ── */
+  .results-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 16px;
+  }
+  .results-title {
+    font-size: 14px;
+    color: var(--muted);
+    font-family: 'Space Mono', monospace;
+    text-transform: uppercase;
+    letter-spacing: .5px;
+  }
+  .results-count {
+    font-family: 'Space Mono', monospace;
+    font-size: 13px;
+    color: var(--cyan);
+  }
+
+  .results-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 14px;
+  }
+
+  .result-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 16px 18px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    transition: border-color .2s, transform .15s;
+    text-decoration: none;
+    color: inherit;
+    cursor: pointer;
+  }
+  .result-card:hover {
+    border-color: var(--cyan);
+    transform: translateY(-2px);
+  }
+  .result-card.found   { border-left: 3px solid var(--green); }
+  .result-card.missing { border-left: 3px solid var(--border); opacity: .55; }
+
+  .result-icon {
+    width: 38px; height: 38px;
+    border-radius: 8px;
+    background: var(--surface);
+    display: grid; place-items: center;
+    font-size: 18px;
+    flex-shrink: 0;
+  }
+  .result-info { flex: 1; min-width: 0; }
+  .result-platform {
+    font-weight: 600;
+    font-size: 14px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .result-url {
+    font-size: 11px;
+    color: var(--muted);
+    font-family: 'Space Mono', monospace;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    margin-top: 2px;
+  }
+  .result-status {
+    font-size: 11px;
+    font-family: 'Space Mono', monospace;
+    font-weight: 700;
+    flex-shrink: 0;
+  }
+  .result-status.found   { color: var(--green); }
+  .result-status.missing { color: var(--muted); }
+
+  /* ── Stats row ── */
+  .stats-row {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 24px;
+    flex-wrap: wrap;
+  }
+  .stat-pill {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 10px 16px;
+    font-family: 'Space Mono', monospace;
+    font-size: 13px;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .stat-pill .num { font-size: 20px; font-weight: 700; }
+  .stat-pill .lbl { color: var(--muted); font-size: 11px; }
+  .stat-pill.green .num { color: var(--green); }
+  .stat-pill.cyan  .num { color: var(--cyan); }
+
+  /* ── Footer ── */
+  footer {
+    text-align: center;
+    margin-top: 60px;
+    font-size: 12px;
+    color: var(--muted);
+    font-family: 'Space Mono', monospace;
+  }
+
+  @media (max-width: 520px) {
+    .search-row { flex-direction: column; }
+    .logo-text { font-size: 20px; }
+    .results-grid { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+<div class="orb"></div>
+<div class="wrapper">
+
+  <header>
+    <div class="badge"><span class="badge-dot"></span> POWERED BY APIFY · SHERLOCK ACTOR</div>
+    <div class="logo-row">
+      <div class="logo-icon">🔍</div>
+      <div class="logo-text">Xyto<span>Universal</span>Search</div>
+    </div>
+    <p>Search a username across hundreds of social platforms and public sites in seconds.</p>
+  </header>
+
+  <!-- Search card -->
+  <div class="search-card">
+    <div class="search-label">// Username to search</div>
+    <div class="search-row">
+      <input
+        id="usernameInput"
+        class="search-input"
+        type="text"
+        placeholder="e.g. johndoe"
+        autocomplete="off"
+        spellcheck="false"
+      />
+      <button class="search-btn" id="searchBtn" onclick="runSearch()">
+        <span>🔍</span> Search
+      </button>
+    </div>
+    <div class="platforms">
+      <span class="plat-tag">Instagram</span>
+      <span class="plat-tag">TikTok</span>
+      <span class="plat-tag">Twitter / X</span>
+      <span class="plat-tag">Facebook</span>
+      <span class="plat-tag">LinkedIn</span>
+      <span class="plat-tag">YouTube</span>
+      <span class="plat-tag">Pinterest</span>
+      <span class="plat-tag">Reddit</span>
+      <span class="plat-tag">GitHub</span>
+      <span class="plat-tag">+ hundreds more</span>
+    </div>
+  </div>
+
+  <!-- Status bar -->
+  <div id="statusBar">
+    <div class="spinner"></div>
+    <span id="statusText">Searching across platforms…</span>
+  </div>
+
+  <!-- Error -->
+  <div class="error-box" id="errorBox"></div>
+
+  <!-- Stats -->
+  <div class="stats-row" id="statsRow" style="display:none"></div>
+
+  <!-- Results header -->
+  <div id="resultsHeader" style="display:none" class="results-header">
+    <div class="results-title">// Results</div>
+    <div class="results-count" id="resultsCount"></div>
+  </div>
+
+  <!-- Results grid -->
+  <div class="results-grid" id="resultsGrid"></div>
+
+  <footer>XytoUniversalSearch v2.0 · Apify — misceres/sherlock · 400+ platforms · By @devxyto • 2026</footer>
+</div>
+
+<script>
+const BACKEND = "http://localhost:8000"; // FastAPI server
+
+// Platform emoji map (fallback icons)
+const ICONS = {
+  instagram:"📸", tiktok:"🎵", twitter:"🐦", x:"🐦", facebook:"👤",
+  linkedin:"💼", youtube:"▶️", pinterest:"📌", reddit:"🤖", github:"🐙",
+  twitch:"🎮", snapchat:"👻", tumblr:"📝", steam:"🎮", spotify:"🎧",
+  default:"🌐"
+};
+function icon(name) {
+  return ICONS[name?.toLowerCase()] ?? ICONS.default;
+}
+
+async function runSearch() {
+  const input = document.getElementById("usernameInput");
+  const username = input.value.trim();
+  if (!username) { input.focus(); return; }
+
+  // Reset UI
+  document.getElementById("errorBox").classList.remove("show");
+  document.getElementById("resultsGrid").innerHTML = "";
+  document.getElementById("resultsHeader").style.display = "none";
+  document.getElementById("statsRow").style.display = "none";
+
+  setLoading(true, `Searching "${username}" across 400+ platforms via Apify… (may take ~60s)`);
+
+  // tick the status message so user knows it's alive
+  let dots = 0;
+  const ticker = setInterval(() => {
+    dots = (dots + 1) % 4;
+    document.getElementById("statusText").textContent =
+      `Searching "${username}" across 400+ platforms via Apify${".".repeat(dots)}`;
+  }, 800);
+
+  try {
+    const res = await fetch(`${BACKEND}/api/search`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ username })
+    });
+
+    const data = await res.json();
+
+    if (!res.ok) {
+      showError(data.detail || "Search failed. Check your Apify token in server.py.");
+      return;
+    }
+
+    renderResults(data, username);
+
+  } catch (err) {
+    showError(
+      `Cannot reach the backend server.\n\nMake sure you started it:\n  python server.py\n\nError: ${err.message}`
+    );
+  } finally {
+    clearInterval(ticker);
+    setLoading(false);
+  }
+}
+
+function renderResults(data, username) {
+  const grid   = document.getElementById("resultsGrid");
+  const hdr    = document.getElementById("resultsHeader");
+  const count  = document.getElementById("resultsCount");
+  const stats  = document.getElementById("statsRow");
+
+  // Server returns: { username, total, found, results: [{platform, url, found}] }
+  const results = Array.isArray(data.results) ? data.results : [];
+
+  const found   = results.filter(r => r.found);
+  const missing = results.filter(r => !r.found);
+
+  // Stats
+  stats.style.display = "flex";
+  stats.innerHTML = `
+    <div class="stat-pill cyan">
+      <div><div class="num">${results.length}</div><div class="lbl">SITES CHECKED</div></div>
+    </div>
+    <div class="stat-pill green">
+      <div><div class="num">${found.length}</div><div class="lbl">PROFILES FOUND</div></div>
+    </div>
+    <div class="stat-pill">
+      <div><div class="num">${missing.length}</div><div class="lbl">NOT FOUND</div></div>
+    </div>
+  `;
+
+  // Results header
+  hdr.style.display = "flex";
+  count.textContent = `${found.length} found / ${results.length} checked`;
+
+  // Sort: found first
+  const sorted = [...found, ...missing];
+
+  grid.innerHTML = sorted.map(r => {
+    const cls = r.found ? "found" : "missing";
+    const statusLabel = r.found ? "FOUND" : "NOT FOUND";
+    const href = r.url ? `href="${r.url}" target="_blank" rel="noopener"` : "";
+    return `
+      <a class="result-card ${cls}" ${href}>
+        <div class="result-icon">${icon(r.platform)}</div>
+        <div class="result-info">
+          <div class="result-platform">${r.platform}</div>
+          <div class="result-url">${r.url || `—`}</div>
+        </div>
+        <div class="result-status ${cls}">${statusLabel}</div>
+      </a>
+    `;
+  }).join("");
+}
+
+function setLoading(on, msg = "") {
+  const bar = document.getElementById("statusBar");
+  const btn = document.getElementById("searchBtn");
+  if (on) {
+    bar.classList.add("show");
+    document.getElementById("statusText").textContent = msg;
+    btn.disabled = true;
+    btn.innerHTML = `<span class="spinner" style="border-top-color:#000"></span> Searching…`;
+  } else {
+    bar.classList.remove("show");
+    btn.disabled = false;
+    btn.innerHTML = `<span>🔍</span> Search`;
+  }
+}
+
+function showError(msg) {
+  const box = document.getElementById("errorBox");
+  box.textContent = msg;
+  box.classList.add("show");
+}
+
+// Enter key trigger
+document.addEventListener("DOMContentLoaded", () => {
+  document.getElementById("usernameInput").addEventListener("keydown", e => {
+    if (e.key === "Enter") runSearch();
+  });
+});
+</script>
+</body>
+</html>
